@@ -9,7 +9,7 @@ from db import Base, engine
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
-    title="Eko zamin",
+    title="fast api",
 
 )
 

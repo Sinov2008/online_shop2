@@ -1,51 +1,43 @@
-import datetime
-from datetime import date
-
 from fastapi import APIRouter, Depends, HTTPException
-
-from db import Base, engine, get_db
-
+from db import Base, engine,get_db
 from sqlalchemy.orm import Session
-
-from functions.expenses import all_expenses, one_expenses, update_expenses, delete_expenses, add_expenses
 from routes.auth import get_current_active_user
-
 Base.metadata.create_all(bind=engine)
-from schemas.expenses import ExpensesUpdate,ExpensesCreate
-from schemas.users import UserCurrent
+from functions.expenses import one_expenses, all_expenses, update_expenses, create_expenses, expenses_delete, expenses_current
+from schemas.expenses import ExpensesBase,ExpensesCreate,ExpensesUpdate,ExpensesCurrent
 
-expenses_router = APIRouter()
-
-
-@expenses_router.post('/add', )
-def addd_expenses(form: ExpensesCreate, db: Session = Depends(get_db),
-              current_user: UserCurrent = Depends(get_current_active_user)):  #
-    if add_expenses(form, current_user, db):
-        raise HTTPException(status_code=200, detail="A`maliyot muvaffaqiyatli amalga oshirildi")
+router_expenses = APIRouter()
 
 
-@expenses_router.get('/', status_code=200)
-def get_expenses(search: str = None, status: bool = True, id: int = 0,
-                start_date: date = datetime.datetime.now().date().min,
-                end_date: date = datetime.datetime.now().date(),
-                roll: str = None, page: int = 1, limit: int = 25,
-                db: Session = Depends(get_db), current_user: UserCurrent = Depends(
-            get_current_active_user)):  # current_user: User = Depends(get_current_active_user)
-    if id:
-        return one_expenses(id,current_user, db)
-    else:
-        return all_expenses(search, status, start_date, end_date, page, limit, db)
+
+@router_expenses.post('/add', )
+def add_expenses(form: ExpensesCreate, db: Session = Depends(get_db),current_user: ExpensesCurrent = Depends(get_current_active_user) ) : #
+    if create_expenses(form, current_user, db) :
+        raise HTTPException(status_code = 200, detail = "Amaliyot muvaffaqiyatli amalga oshirildi")
 
 
-@expenses_router.put("/update")
-def expenses_update(form: ExpensesUpdate, db: Session = Depends(get_db),
-                 current_user: UserCurrent = Depends(get_current_active_user)):
-    if update_expenses(form, current_user, db):
-        raise HTTPException(status_code=200, detail="Amaliyot muvaffaqiyatli amalga oshirildi")
+@router_expenses.get('/',  status_code = 200)
+def get_expenses(search: str = None, status: bool = True, id: int = 0, page: int = 1, limit: int = 25, db: Session = Depends(get_db),current_user: expenses_current = Depends(get_current_active_user) ) : # current_user: User = Depends(get_current_active_user)
+    if id :
+        return one_expenses(id, db)
+    else :
+        return all_expenses(search, status, page, limit, db)
+
+@router_expenses.get('/user',  status_code = 200)
+def get_expenses_current(db: Session = Depends(get_db),current_user: ExpensesCurrent = Depends(get_current_active_user) ) : # current_user: User = Depends(get_current_active_user)
+    if current_user:
+        return expenses_current(current_user, db)
 
 
-@expenses_router.delete('/{id}', status_code=200)
-def delete_expense(id: int = 0, db: Session = Depends(get_db), current_user: UserCurrent = Depends(
-    get_current_active_user)):  # current_user: User = Depends(get_current_active_user)
-    if id:
-        return delete_expenses(id,current_user,db)
+@router_expenses.put("/update")
+def expenses_update(form: ExpensesUpdate, db: Session = Depends(get_db),current_user: ExpensesCurrent = Depends(get_current_active_user)) :
+    if update_expenses(form,current_user, db) :
+        raise HTTPException(status_code = 200, detail = "Amaliyot muvaffaqiyatli amalga oshirildi")
+
+
+
+
+@router_expenses.delete('/{id}',  status_code = 200)
+def delete_expenses(id: int = 0,db: Session = Depends(get_db), current_user: ExpensesCurrent = Depends(get_current_active_user)) : # current_user: User = Depends(get_current_active_user)
+    if id :
+        return expenses_delete(id, db)

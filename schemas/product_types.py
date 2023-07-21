@@ -1,15 +1,24 @@
 from pydantic import BaseModel
+import datetime
+from typing import Optional, List
 
-from db import Base
 
 
-class product_typeBase(BaseModel):
+
+
+
+class Types_Base(BaseModel):
     name: str
-    status: bool = True
+    date: datetime
 
-class Product_typeCreate(product_typeBase):
+
+
+
+class Types_Create(Types_Base):
     pass
 
 
-class Product_typeUpdate(product_typeBase):
+class Types_Update(Types_Base):
     id: int
+    date:datetime
+    status: bool = True

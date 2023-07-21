@@ -1,21 +1,48 @@
 from pydantic import BaseModel
+from typing import Optional, List
 
-from db import Base
 
 
 class ExpensesBase(BaseModel):
-    sourke:str
-    comment: str
-    worker_id: int
-    status: bool = True
-    price: int
+    name: str
+
+    status: bool
+
 
 class ExpensesCreate(ExpensesBase):
-    pass
+
+    number: str
+
 
 
 class ExpensesUpdate(ExpensesBase):
+    id: int
+
+    number: str
+
+
+
+class UpdateExpensesBalance(BaseModel):
+    id: int
+    balance: float
+
+
+class UpdateExpensesSalary(BaseModel):
+    id: int
+    salary: float
     user_id: int
+
+
+class UpdateExpensesSalaryBalance(BaseModel):
+    id: int
+    balance: int
+    salary: int
+
+
+class ExpensesCurrent(BaseModel):
     id:int
-
-
+    name: str
+    username: str
+    password:str
+    roll: str
+    status: bool

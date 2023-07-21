@@ -1,17 +1,47 @@
 from pydantic import BaseModel
+from typing import Optional, List
 
-from db import Base
 
 
 class CustomersBase(BaseModel):
-    name:str
-    phone: str
-    address: str
+    name: str
+    status: bool
+
 
 class CustomersCreate(CustomersBase):
-    pass
+    number: str
 
 
-class CustmoerUpdate(CustomersBase):
+
+class CustomersUpdate(CustomersBase):
     id: int
-    status: bool =True
+    number: str
+
+
+
+class UpdateCustomersBalance(BaseModel):
+    id: int
+    balance: float
+    user_id: int
+
+
+class UpdateCustomersSalary(BaseModel):
+    id: int
+    salary: float
+    user_id: int
+
+
+class UpdateCustomersSalaryBalance(BaseModel):
+    id: int
+    balance: int
+    salary: int
+    user_id: int
+
+
+
+class CustomersCurrent(BaseModel):
+    id:int
+    name: str
+    username: str
+    password:str
+    status: bool

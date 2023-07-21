@@ -16,11 +16,6 @@ class Users(Base):
     password = Column(String(200), nullable=False)
     status = Column(Boolean, nullable=False, default=True)
     token = Column(String(400), default='',nullable=True)
-    savdolar = relationship("Orders",back_populates='owner')
-
-    salary = relationship("Expenses", back_populates='owner')
-
-
 
 
 

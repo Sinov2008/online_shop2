@@ -1,92 +1,95 @@
-from fastapi import *
-
-import datetime
-
+from passlib.context import CryptContext
 from sqlalchemy.orm import joinedload
 
+pwd_context = CryptContext(schemes=['bcrypt'])
+from fastapi import HTTPException
+from models.product_types import Product_types
+from routes.auth import get_password_hash
 from utils.pagination import pagination
 
-from models.product_types import Product_types
 
-
-
-def all_product_type(search, status, start_date, end_date, page, limit, db):
+def all_product_types(search, status,  page, limit, db):
     if search:
         search_formatted = "%{}%".format(search)
-        search_filter = Product_types.name.like(search_formatted)|\
-                        Product_types.status.like(search_formatted)
-
+        search_filter = Product_types.name.like(search_formatted) | Product_types.id.like(
+            search_formatted)
     else:
         search_filter = Product_types.id > 0
     if status in [True, False]:
         status_filter = Product_types.status == status
     else:
-        status_filter = Product_types.status.in_([True,False])
+        status_filter = Product_types.id > 0
 
-    try:
-        if not start_date:
-            start_date = datetime.date.min#00-00-00
-        if not end_date:
-            end_date = datetime.date.today()
-        end_date = datetime.datetime.strptime(str(end_date), '%Y-%m-%d').date() + datetime.timedelta(days=1)
-    except Exception as error:
-        raise HTTPException(status_code=400,detail="Faqat yyyy-mmm-dd formatida yozing  ")
-    # dones = db.query(Product_types).filter(Product_types.date > start_date).filter(
-    #     Product_types.date <= end_date).filter(search_filter, status_filter).order_by(Product_types.id.desc()
-    # )
-    types = db.query(Product_types).options(joinedload(Product_types.savdolar)).filter(search_filter, status_filter,).order_by(Product_types.id.desc())
+    users = db.query(Product_types).filter(search_filter, status_filter, ).order_by(Product_types.name.asc())
     if page and limit:
-        return pagination(types,page,limit)
+        return pagination(users, page, limit)
     else:
-        return types.all
+        return users.all()
 
-def one_produc(id, db):
+
+def one_product_types(id, db):
     return db.query(Product_types).filter(Product_types.id == id).first()
 
 
+def product_types_current(user, db):
+    return db.query(Product_types).filter(Product_types.id == user.id).first()
 
-def add_product_type(form,type, db):
-    new_products_type = Product_types(
+
+def create_product_types(form, user, db):
+    user_verification = db.query(Product_types).filter(Product_types.username == form.username).first()
+    if user_verification:
+        raise HTTPException(status_code=400, detail="Bunday foydalanuvchi mavjud")
+    number_verification = db.query(Product_types).filter(Product_types.number == form.number).first()
+    if number_verification:
+        raise HTTPException(status_code=400, detail="Bunday telefon raqami  mavjud")
+
+    new_user_db = Product_types(
         name=form.name,
-        status=form.status,
+
     )
-    db.add(new_products_type)
+    db.add(new_user_db)
     db.commit()
-    db.refresh(new_products_type)
-    return {"date": "Ma'lumot saqlandi"}
+    db.refresh(new_user_db)
+
+    return new_user_db
 
 
-def read_product_type(db):
-    products_typ = db.query(Product_types).all()
-    return products_typ
-
-
-def one_product_type(id: int,type, db):
-    produc_typ = db.query(Product_types).filter(Product_types.id == id).first()
-    return produc_typ
-
-def update_product_type(form,type,db):
-    if one_produc(form.id, db) is None:
+def update_product_types(form, user, db):
+    if one_product_types(form.id, db) is None:
         raise HTTPException(status_code=400, detail="Bunday id raqamli foydalanuvchi mavjud emas")
-    user_verification = db.query(Product_types).filter(Product_types.name == form.name).first()
+    user_verification = db.query(Product_types).filter(Product_types.username == form.username).first()
     if user_verification and user_verification.id != form.id:
         raise HTTPException(status_code=400, detail="Bunday foydalanuvchi mavjud")
 
-    user = db.query(Product_types).filter(Product_types.id == form.id).update(
-        {
-            Product_types.id:form.id,
-            Product_types.name: form.name,
-            Product_types.status: form.status,
-        }
-    )
-    db.commit()
-    return {"date":"Ma'lumot o'zgartirildi"}
+    db.query(Product_types).filter(Product_types.id == form.id).update({
+        Product_types.id: form.id,
+        Product_types.name: form.name,
+        Product_types.status: form.status,
+        Product_types.date: form.date
 
-def delete_product_type(id:int,type,db ):
-    Produc_types = db.query(Product_types).filter(Product_types.id == id).update(
-        {
-            Product_types.status:False
-        }
-    )
+    })
     db.commit()
-    return {"date": "Ma'lumot o'chirildi"}
+
+    return one_product_types(form.id, db)
+
+
+def update_product_types_salary(id, salary, db):
+    if one_product_types(id, db) is None:
+        raise HTTPException(status_code=400, detail=f"Bunday {id} raqamli hodim mavjud emas")
+
+    db.query(Product_types).filter(Product_types.id == id).update({
+        Product_types.salary: salary,
+
+    })
+    db.commit()
+    return one_product_types(id, db)
+
+
+def product_types_delete(id, db):
+    if one_product_types(id, db) is None:
+        raise HTTPException(status_code=400, detail="Bunday id raqamli ma'lumot mavjud emas")
+    db.query(Product_types).filter(Product_types.id == id).update({
+        Product_types.status: False,
+    })
+    db.commit()
+    return {"date": "Ma'lumot o'chirildi !"}

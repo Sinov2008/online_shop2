@@ -1,7 +1,11 @@
+from sqlalchemy import Column, Integer, String, Boolean,Float,Text, func, DateTime
 from sqlalchemy.orm import relationship
 
 from db import Base
-from sqlalchemy import *
+
+
+
+
 
 
 class Product_types(Base):
@@ -10,5 +14,3 @@ class Product_types(Base):
     name = Column(String(20), nullable=False)
     date = Column(DateTime(timezone=True), default=func.now(), nullable=False)
     status = Column(Boolean, default=True)
-
-    savdolar = relationship("Products", back_populates='owner')
