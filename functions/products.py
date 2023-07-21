@@ -51,7 +51,7 @@ def create_product(form, user, db):
         new_price=form.new_price,
         birlik=form.birlik,
         type=form.type,
-        user_id=form.user_id
+        user_id=user.id
 
 
 
